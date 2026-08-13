@@ -53,8 +53,8 @@ jobs:
 
     # 4. Générer l'application avec vos arguments spécifiques
     - name: Compiler ${{ matrix.script_info.name }} avec PyInstaller
-      run: |
-        pyinstaller --name=${{ matrix.script_info.name }} ${{ matrix.script_info.extra_args }} --add-data "vocabulary.txt;." --add-data "toxen.txt;." ${{ matrix.script_info.file }}
+      shell: cmd
+      run: pyinstaller --name=${{ matrix.script_info.name }} ${{ matrix.script_info.extra_args }} --add-data "vocabulary.txt;." --add-data "toxen.txt;." ${{ matrix.script_info.file }}
 
     # 5. Compresser le dossier généré contenant le dossier _internal
     - name: Créer l'archive ZIP
