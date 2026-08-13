@@ -47,7 +47,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller
         pip install torch torchcodec --index-url https://download.pytorch.org/whl/cu126
-        pip install transformers accelerate librosa content-types nagisa soynlp openai-whisper faster-whisper hf_ext
+        pip install transformers accelerate librosa content-types nagisa soynlp openai-whisper faster-whisper hf-xet
         # décommentez la ligne suivante si vous avez un fichier requirements.txt
         # pip install -r requirements.txt
 
