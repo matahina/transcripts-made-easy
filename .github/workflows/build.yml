@@ -35,19 +35,19 @@ jobs:
         # décommentez la ligne suivante si vous avez un fichier requirements.txt
         # pip install -r requirements.txt
 
-    - name: Debug - Lister les fichiers clonés
-      shell: cmd
-      run: dir /s /b
+    # - name: Debug - Lister les fichiers clonés
+    #   shell: cmd
+    #   run: dir /s /b
 
     # 4a. Générer l'application CLI
     - name: Compiler transcript_cli avec PyInstaller
       shell: cmd
-      run: pyinstaller --name=transcript_cli --exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --add-data "vocabulary.txt;." --add-data "toxen.txt;." transcript_cli.py
+      run: pyinstaller --name=transcript_cli --exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --add-data "vocabulary.txt;." --add-data "token.txt;." transcript_cli.py
 
     # 4b. Générer l'application GUI
     - name: Compiler transcript_gui avec PyInstaller
       shell: cmd
-      run: pyinstaller --name=transcript_gui --exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed --add-data "vocabulary.txt;." --add-data "toxen.txt;." transcript_gui.py
+      run: pyinstaller --name=transcript_gui --exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed --add-data "vocabulary.txt;." --add-data "token.txt;." transcript_gui.py
 
     # 5. Modifier l'étape 5 : Compresser les deux dossiers générés
     - name: Créer les archives ZIP
