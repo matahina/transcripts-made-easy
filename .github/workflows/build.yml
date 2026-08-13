@@ -21,12 +21,12 @@ jobs:
           {
             file: "transcript_cli.py",
             name: "transcript_cli",
-            extra_args: '--exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --add-data "vocabulary.txt;." --add-data "toxen.txt;."'
+            extra_args: "-exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch"
           },
           {
             file: "transcript_gui.py",
             name: "transcript_gui",
-            extra_args: '--exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed --add-data "vocabulary.txt;." --add-data "toxen.txt;."'
+            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed"
           }
         ]
 
@@ -54,7 +54,7 @@ jobs:
     # 4. Générer l'application avec vos arguments spécifiques
     - name: Compiler ${{ matrix.script_info.name }} avec PyInstaller
       run: |
-        pyinstaller --name=${{ matrix.script_info.name }} ${{ matrix.script_info.extra_args }} ${{ matrix.script_info.file }}
+        pyinstaller --name=${{ matrix.script_info.name }} ${{ matrix.script_info.extra_args }} --add-data "vocabulary.txt;." --add-data "toxen.txt;." ${{ matrix.script_info.file }}
 
     # 5. Compresser le dossier généré contenant le dossier _internal
     - name: Créer l'archive ZIP
