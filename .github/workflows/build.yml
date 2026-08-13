@@ -1,14 +1,19 @@
-name: Génération Double PyInstaller
+name: Publication des Releases PyInstaller
 
+# Le build se déclenche UNIQUEMENT lorsque vous poussez un tag qui commence par "v" (ex: v1.0, v2.1.4)
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: windows-latest
+
+    # Autorise le script à créer et modifier des Releases sur votre dépôt
+    permissions:
+      contents: write
+
 
     strategy:
       matrix:
@@ -16,12 +21,12 @@ jobs:
           {
             file: "transcript_cli.py",
             name: "transcript_cli",
-            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch"
+            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --add-data 'vocabulary.txt;.' --add-data 'toxen.txt;.'"
           },
           {
             file: "transcript_gui.py",
             name: "transcript_gui",
-            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed"
+            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed --add-data 'vocabulary.txt;.' --add-data 'toxen.txt;.'"
           }
         ]
 
@@ -42,7 +47,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller
         pip install torch torchcodec --index-url https://download.pytorch.org/whl/cu126
-        pip install transformers accelerate librosa content-types nagisa soynlp openai-whisper faster-whisper
+        pip install transformers accelerate librosa content-types nagisa soynlp openai-whisper faster-whisper hf_ext
         # décommentez la ligne suivante si vous avez un fichier requirements.txt
         # pip install -r requirements.txt
 
@@ -56,9 +61,8 @@ jobs:
       run: |
         Compress-Archive -Path dist/${{ matrix.script_info.name }}/* -DestinationPath dist/${{ matrix.script_info.name }}.zip
 
-    # 6. Téléverser le fichier ZIP spécifique dans les artefacts
-    - name: Téléverser le fichier ZIP
-      uses: actions/upload-artifact@v4
+    # 6. Publier le fichier ZIP directement dans la Release GitHub
+    - name: Publier sur la Release GitHub
+      uses: softprops/action-gh-release@v2
       with:
-        name: ${{ matrix.script_info.name }}-Windows-ZIP
-        path: dist/${{ matrix.script_info.name }}.zip
+        files: dist/${{ matrix.script_info.name }}.zip

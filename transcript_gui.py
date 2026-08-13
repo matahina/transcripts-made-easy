@@ -582,7 +582,9 @@ class TranscriptGUI(tk.Tk):
             ],
         )
 
-        for path in the_paths:
+        paths = check_files(paths, self.no_ffmpeg_var.get(), False)
+
+        for path in paths:
             if path not in self.files:
                 self.files.append(path)
                 self.file_list.insert("end", path)
