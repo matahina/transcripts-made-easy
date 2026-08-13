@@ -1,0 +1,64 @@
+name: Génération Double PyInstaller
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        script_info: [
+          {
+            file: "transcript_cli.py",
+            name: "transcript_cli",
+            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch"
+          },
+          {
+            file: "transcript_gui.py",
+            name: "transcript_gui",
+            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed"
+          }
+        ]
+
+    steps:
+    # 1. Récupérer le code source
+    - name: Checkout du code
+      uses: actions/checkout@v4
+
+    # 2. Configurer Python
+    - name: Configurer Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.14' # Modifiez selon vos besoins
+
+    # 3. Installer les dépendances
+    - name: Installer les dépendances
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install torch torchcodec --index-url https://download.pytorch.org/whl/cu126
+        pip install transformers accelerate librosa content-types nagisa soynlp openai-whisper faster-whisper
+        # décommentez la ligne suivante si vous avez un fichier requirements.txt
+        # pip install -r requirements.txt
+
+    # 4. Générer l'application avec vos arguments spécifiques
+    - name: Compiler ${{ matrix.script_info.name }} avec PyInstaller
+      run: |
+        pyinstaller --name=${{ matrix.script_info.name }} ${{ matrix.script_info.extra_args }} ${{ matrix.script_info.file }}
+
+    # 5. Compresser le dossier généré contenant le dossier _internal
+    - name: Créer l'archive ZIP
+      run: |
+        Compress-Archive -Path dist/${{ matrix.script_info.name }}/* -DestinationPath dist/${{ matrix.script_info.name }}.zip
+
+    # 6. Téléverser le fichier ZIP spécifique dans les artefacts
+    - name: Téléverser le fichier ZIP
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.script_info.name }}-Windows-ZIP
+        path: dist/${{ matrix.script_info.name }}.zip
