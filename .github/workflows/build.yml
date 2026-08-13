@@ -49,16 +49,65 @@ jobs:
       shell: cmd
       run: pyinstaller --name=transcript_gui --exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed --add-data "vocabulary.txt;." --add-data "token.txt;." transcript_gui.py
 
-    # 5. Modifier l'étape 5 : Compresser les deux dossiers générés
-    - name: Créer les archives ZIP
+    # # 5. Modifier l'étape 5 : Compresser les deux dossiers générés
+    # - name: Créer les archives ZIP
+    #   run: |
+    #     Compress-Archive -Path dist/transcript_cli/* -DestinationPath dist/transcript_cli.zip -CompressionLevel Optimal
+    #     Compress-Archive -Path dist/transcript_gui/* -DestinationPath dist/transcript_gui.zip -CompressionLevel Optimal
+    #
+    # # 6. Modifier l'étape 6 : Publier les deux fichiers ZIP dans la Release GitHub
+    # - name: Publier sur la Release GitHub
+    #   uses: softprops/action-gh-release@v2
+    #   with:
+    #     files: |
+    #       dist/transcript_cli.zip
+    #       dist/transcript_gui.zip
+    # 5. Créer les archives et les découper si elles dépassent 1.5 Go
+    - name: Créer les archives ZIP découpées
+      shell: powershell
       run: |
-        Compress-Archive -Path dist/transcript_cli/* -DestinationPath dist/transcript_cli.zip -CompressionLevel Optimal
-        Compress-Archive -Path dist/transcript_gui/* -DestinationPath dist/transcript_gui.zip -CompressionLevel Optimal
+        # Configuration des dossiers à traiter
+        $targets = @("transcript_cli", "transcript_gui")
 
-    # 6. Modifier l'étape 6 : Publier les deux fichiers ZIP dans la Release GitHub
+        foreach ($target in $targets) {
+            Write-Host "Archivage de $target..."
+            # Création du ZIP initial via tar
+            tar -a -c -f dist/$target.zip -C dist/$target .
+
+            # Vérification de la taille (2147483648 octets = 2 Go. On coupe à 1.5 Go par sécurité)
+            $file = Get-Item "dist/$target.zip"
+            if ($file.Length -gt 1500000000) {
+                Write-Host "$target.zip dépasse 1.5 Go (${file.Length} octets). Découpage en cours..."
+
+                $buffer = New-Object byte[] 104857600  # Tampon de 100 Mo pour aller vite
+                $inputStream = [System.IO.File]::OpenRead($file.FullName)
+                $chunkSize = 1500000000 # 1.5 Go par morceau
+                $chunkIndex = 1
+
+                while ($inputStream.Position -lt $inputStream.Length) {
+                    $chunkPath = "dist/$target.zip." + $chunkIndex.ToString("D3")
+                    $outputStream = [System.IO.File]::Create($chunkPath)
+                    $bytesRead = 0
+
+                    while ($bytesRead -lt $chunkSize -and $inputStream.Position -lt $inputStream.Length) {
+                        $toRead = [System.Math]::Min($buffer.Length, $chunkSize - $bytesRead)
+                        $read = $inputStream.Read($buffer, 0, $toRead)
+                        $outputStream.Write($buffer, 0, $read)
+                        $bytesRead += $read
+                    }
+                    $outputStream.Close()
+                    $chunkIndex++
+                }
+                $inputStream.Close()
+                # Supprime le ZIP d'origine trop gros pour ne garder que les morceaux
+                Remove-Item $file.FullName
+            }
+        }
+
+    # 6. Publier TOUS les fichiers générés (y compris les archives découpées)
     - name: Publier sur la Release GitHub
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          dist/transcript_cli.zip
-          dist/transcript_gui.zip
+          dist/transcript_cli.zip*
+          dist/transcript_gui.zip*
