@@ -21,12 +21,12 @@ jobs:
           {
             file: "transcript_cli.py",
             name: "transcript_cli",
-            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --add-data 'vocabulary.txt;.' --add-data 'toxen.txt;.'"
+            extra_args: '--exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --add-data "vocabulary.txt;." --add-data "toxen.txt;."'
           },
           {
             file: "transcript_gui.py",
             name: "transcript_gui",
-            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed --add-data 'vocabulary.txt;.' --add-data 'toxen.txt;.'"
+            extra_args: '--exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed--add-data "vocabulary.txt;." --add-data "toxen.txt;."'
           }
         ]
 
