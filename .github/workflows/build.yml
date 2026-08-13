@@ -21,7 +21,7 @@ jobs:
           {
             file: "transcript_cli.py",
             name: "transcript_cli",
-            extra_args: "-exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch"
+            extra_args: "--exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch"
           },
           {
             file: "transcript_gui.py",
