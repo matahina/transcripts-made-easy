@@ -52,8 +52,8 @@ jobs:
     # 5. Modifier l'étape 5 : Compresser les deux dossiers générés
     - name: Créer les archives ZIP
       run: |
-        Compress-Archive -Path dist/transcript_cli/* -DestinationPath dist/transcript_cli.zip
-        Compress-Archive -Path dist/transcript_gui/* -DestinationPath dist/transcript_gui.zip
+        Compress-Archive -Path dist/transcript_cli/* -DestinationPath dist/transcript_cli.zip -CompressionLevel Optimal
+        Compress-Archive -Path dist/transcript_gui/* -DestinationPath dist/transcript_gui.zip -CompressionLevel Optimal
 
     # 6. Modifier l'étape 6 : Publier les deux fichiers ZIP dans la Release GitHub
     - name: Publier sur la Release GitHub
