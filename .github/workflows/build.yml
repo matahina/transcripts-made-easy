@@ -35,6 +35,10 @@ jobs:
         # décommentez la ligne suivante si vous avez un fichier requirements.txt
         # pip install -r requirements.txt
 
+    - name: Debug - Lister les fichiers clonés
+      shell: cmd
+      run: dir /s /b
+
     # 4a. Générer l'application CLI
     - name: Compiler transcript_cli avec PyInstaller
       shell: cmd
