@@ -42,12 +42,12 @@ jobs:
     # 4a. Générer l'application CLI
     - name: Compiler transcript_cli avec PyInstaller
       shell: cmd
-      run: pyinstaller --name=transcript_cli --exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --copy-metadata openai-whisper --copy-metadata faster-whisper --add-data "${assets_src};faster_whisper/assets" --add-data "${assets_src};whisper/assets" transcript_cli.py
+      run: pyinstaller --name=transcript_cli --exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --copy-metadata openai-whisper --copy-metadata faster-whisper --add-data "${{ env.assets_src }};faster_whisper/assets" --add-data "${{ env.assets_src }};whisper/assets" transcript_cli.py
 
     # 4b. Générer l'application GUI
     - name: Compiler transcript_gui avec PyInstaller
       shell: cmd
-      run: pyinstaller --name=transcript_gui --exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --recursive-copy-metadata openai-whisper --recursive-copy-metadata faster-whisper --windowed --add-data "${assets_src};faster_whisper/assets" --add-data "${assets_src};whisper/assets" transcript_gui.py
+      run: pyinstaller --name=transcript_gui --exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --recursive-copy-metadata openai-whisper --recursive-copy-metadata faster-whisper --windowed --add-data "${{ env.assets_src }};faster_whisper/assets" --add-data "${{ env.assets_src }};whisper/assets" transcript_gui.py
 
     - name: Move configuration files next to the Executable
       run: |
