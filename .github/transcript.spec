@@ -9,6 +9,18 @@ block_cipher = None
 whisper_assets = os.path.join(os.path.dirname(whisper.__file__), 'assets')
 faster_assets = os.path.join(os.path.dirname(faster_whisper.__file__), 'assets')
 
+# Fonction de sécurité pour nettoyer les résidus mal formés de Python 3.14
+def clean_toc(toc_list):
+    cleaned = []
+    for item in toc_list:
+        # Une entrée valide dans PyInstaller DOIT avoir 3 éléments
+        if isinstance(item, (list, tuple)) and len(item) == 3:
+            cleaned.append(item)
+        # Si PyInstaller a généré un tuple à 2 éléments, on tente de le corriger en lui attribuant le type 'DATA'
+        elif isinstance(item, (list, tuple)) and len(item) == 2:
+            cleaned.append((item[0], item[1], 'DATA'))
+    return cleaned
+
 # ==========================================
 # 1. ANALYSE ET CONFIGURATION POUR CLI
 # ==========================================
@@ -31,13 +43,11 @@ a_cli = Analysis(
     noarchive=False,
 )
 
-# Collecte complète et sécurisée pour Transformers
 datas_trans, binaries_trans, hidden_trans = collect_all('transformers')
 a_cli.datas += datas_trans
 a_cli.binaries += binaries_trans
 a_cli.hiddenimports += hidden_trans
 
-# Collecte complète pour les autres dépendances lourdes (gère les métadonnées proprement)
 for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper']:
     d, b, h = collect_all(pkg)
     a_cli.datas += d
@@ -86,7 +96,6 @@ a_gui = Analysis(
     noarchive=False,
 )
 
-# On applique exactement les mêmes collectes validées pour le GUI
 a_gui.datas += datas_trans
 a_gui.binaries += binaries_trans
 a_gui.hiddenimports += hidden_trans
@@ -118,17 +127,17 @@ exe_gui = EXE(
 )
 
 # ==========================================
-# 3. REGROUPEMENT FINAL DANS UN DOSSIER UNIQUE
+# 3. REGROUPEMENT FINAL ET NETTOYAGE
 # ==========================================
 coll = COLLECT(
     exe_cli,
-    a_cli.binaries,
-    a_cli.zipfiles,
-    a_cli.datas,
+    clean_toc(a_cli.binaries),
+    clean_toc(a_cli.zipfiles),
+    clean_toc(a_cli.datas),
     exe_gui,
-    a_gui.binaries,
-    a_gui.zipfiles,
-    a_gui.datas,
+    clean_toc(a_gui.binaries),
+    clean_toc(a_gui.zipfiles),
+    clean_toc(a_gui.datas),
     strip=False,
     upx=True,
     upx_exclude=[],
