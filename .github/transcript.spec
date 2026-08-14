@@ -6,13 +6,14 @@ from PyInstaller.utils.hooks import collect_all, copy_metadata
 
 block_cipher = None
 
-# Détection dynamique des dossiers d'assets indispensables
 whisper_assets = os.path.join(os.path.dirname(whisper.__file__), 'assets')
 faster_assets = os.path.join(os.path.dirname(faster_whisper.__file__), 'assets')
 
-# 1. Analyse partagée des dépendances (Scripts, packages et modules cachés)
-a = Analysis(
-    ['../transcript_cli.py', '../transcript_gui.py'],
+# ==========================================
+# 1. ANALYSE ET CONFIGURATION POUR CLI
+# ==========================================
+a_cli = Analysis(
+    ['../transcript_cli.py'],
     pathex=[],
     binaries=[],
     datas=[
@@ -23,30 +24,29 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['matplotlib', 'PyQt5'],  # Tkinter reste inclus implicitement ici
+    excludes=['matplotlib', 'PyQt5'],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,
     noarchive=False,
 )
 
-# Collecte stricte des packages lourds et des métadonnées
+# Collecte des packages lourds pour CLI
 datas_trans, binaries_trans, hidden_trans = collect_all('transformers')
-a.datas += datas_trans
-a.binaries += binaries_trans
-a.hiddenimports += hidden_trans
+a_cli.datas += datas_trans
+a_cli.binaries += binaries_trans
+a_cli.hiddenimports += hidden_trans
 
-a.datas += copy_metadata('torchcodec')
-a.datas += copy_metadata('torch')
-a.datas += copy_metadata('openai-whisper')
-a.datas += copy_metadata('faster-whisper')
+a_cli.datas += copy_metadata('torchcodec')
+a_cli.datas += copy_metadata('torch')
+a_cli.datas += copy_metadata('openai-whisper')
+a_cli.datas += copy_metadata('faster-whisper')
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz_cli = PYZ(a_cli.pure, a_cli.zipped_data, cipher=block_cipher)
 
-# 2. Définition de l'exécutable CLI (console=True)
 exe_cli = EXE(
-    pyz,
-    a.scripts,
+    pyz_cli,
+    a_cli.scripts,
     [],
     exclude_binaries=True,
     name='transcript_cli',
@@ -62,10 +62,43 @@ exe_cli = EXE(
     entitlements_file=None,
 )
 
-# 3. Définition de l'exécutable GUI (console=False / windowed)
+# ==========================================
+# 2. ANALYSE ET CONFIGURATION POUR GUI
+# ==========================================
+a_gui = Analysis(
+    ['../transcript_gui.py'],
+    pathex=[],
+    binaries=[],
+    datas=[
+        (faster_assets, 'faster_whisper/assets'),
+        (whisper_assets, 'whisper/assets')
+    ],
+    hiddenimports=[],
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=['matplotlib', 'PyQt5'],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
+    noarchive=False,
+)
+
+# On applique les mêmes collectes pour le GUI
+a_gui.datas += datas_trans
+a_gui.binaries += binaries_trans
+a_gui.hiddenimports += hidden_trans
+
+a_gui.datas += copy_metadata('torchcodec')
+a_gui.datas += copy_metadata('torch')
+a_gui.datas += copy_metadata('openai-whisper')
+a_gui.datas += copy_metadata('faster-whisper')
+
+pyz_gui = PYZ(a_gui.pure, a_gui.zipped_data, cipher=block_cipher)
+
 exe_gui = EXE(
-    pyz,
-    a.scripts,
+    pyz_gui,
+    a_gui.scripts,
     [],
     exclude_binaries=True,
     name='transcript_gui',
@@ -81,15 +114,20 @@ exe_gui = EXE(
     entitlements_file=None,
 )
 
-# 4. Regroupement final dans un sous-dossier partagé
+# ==========================================
+# 3. REGROUPEMENT FINAL DANS UN DOSSIER UNIQUE
+# ==========================================
 coll = COLLECT(
     exe_cli,
+    a_cli.binaries,
+    a_cli.zipfiles,
+    a_cli.datas,
     exe_gui,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
+    a_gui.binaries,
+    a_gui.zipfiles,
+    a_gui.datas,
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='transcript_app',  # Tout se retrouve dans dist/transcript_app/
+    name='transcript_app',
 )
