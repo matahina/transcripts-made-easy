@@ -41,13 +41,24 @@ jobs:
 
     # 4a. Générer l'application CLI
     - name: Compiler transcript_cli avec PyInstaller
-      shell: bash
-      run: pyinstaller --name=transcript_cli --exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --copy-metadata openai-whisper --copy-metadata faster-whisper --add-data "${{ env.assets_src }};faster_whisper/assets" --add-data "${{ env.assets_src }};whisper/assets" transcript_cli.py
+      shell: cmd
+      run: |
+        python -c "import whisper, os; print(os.path.join(os.path.dirname(whisper.__file__), 'assets'))" > whisper_path.txt
+        python -c "import faster_whisper, os; print(os.path.join(os.path.dirname(faster_whisper.__file__), 'assets'))" > faster_path.txt
+        set /p PATH_WHISPER=<whisper_path.txt
+        set /p PATH_FASTER=<faster_path.txt
+        pyinstaller --name=transcript_cli --exclude-module matplotlib --exclude-module PyQt5 --exclude-module tkinter --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --copy-metadata openai-whisper --copy-metadata faster-whisper --add-data "%PATH_FASTER%;faster_whisper/assets" --add-data "%PATH_WHISPER%;whisper/assets" transcript_cli.py
 
     # 4b. Générer l'application GUI
     - name: Compiler transcript_gui avec PyInstaller
-      shell: bash
-      run: pyinstaller --name=transcript_gui --exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --recursive-copy-metadata openai-whisper --recursive-copy-metadata faster-whisper --windowed --add-data "${{ env.assets_src }};faster_whisper/assets" --add-data "${{ env.assets_src }};whisper/assets" transcript_gui.py
+      shell: cmd
+      run: |
+        python -c "import whisper, os; print(os.path.join(os.path.dirname(whisper.__file__), 'assets'))" > whisper_path.txt
+        python -c "import faster_whisper, os; print(os.path.join(os.path.dirname(faster_whisper.__file__), 'assets'))" > faster_path.txt
+        set /p PATH_WHISPER=<whisper_path.txt
+        set /p PATH_FASTER=<faster_path.txt
+        pyinstaller --name=transcript_gui --exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --recursive-copy-metadata openai-whisper --recursive-copy-metadata faster-whisper --windowed --add-data "%PATH_FASTER%;faster_whisper/assets" --add-data "%PATH_WHISPER%;whisper/assets" transcript_gui.py
+
 
     - name: Move configuration files next to the Executable
       run: |
