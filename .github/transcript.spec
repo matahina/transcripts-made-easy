@@ -2,7 +2,7 @@
 import os
 import whisper
 import faster_whisper
-from PyInstaller.utils.hooks import collect_all, collect_data
+from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
@@ -31,17 +31,18 @@ a_cli = Analysis(
     noarchive=False,
 )
 
-# Collecte propre des packages (collect_all s'occupe déjà des datas, binaries et hiddenimports)
+# Collecte complète et sécurisée pour Transformers
 datas_trans, binaries_trans, hidden_trans = collect_all('transformers')
 a_cli.datas += datas_trans
 a_cli.binaries += binaries_trans
 a_cli.hiddenimports += hidden_trans
 
-# Remplacement sécurisé des métadonnées problématiques sous Python 3.14
-a_cli.datas += collect_data('torchcodec')
-a_cli.datas += collect_data('torch')
-a_cli.datas += collect_data('openai-whisper')
-a_cli.datas += collect_data('faster-whisper')
+# Collecte complète pour les autres dépendances lourdes (gère les métadonnées proprement)
+for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper']:
+    d, b, h = collect_all(pkg)
+    a_cli.datas += d
+    a_cli.binaries += b
+    a_cli.hiddenimports += h
 
 pyz_cli = PYZ(a_cli.pure, a_cli.zipped_data, cipher=block_cipher)
 
@@ -85,15 +86,16 @@ a_gui = Analysis(
     noarchive=False,
 )
 
-# On applique les mêmes collectes pour le GUI
+# On applique exactement les mêmes collectes validées pour le GUI
 a_gui.datas += datas_trans
 a_gui.binaries += binaries_trans
 a_gui.hiddenimports += hidden_trans
 
-a_gui.datas += collect_data('torchcodec')
-a_gui.datas += collect_data('torch')
-a_gui.datas += collect_data('openai-whisper')
-a_gui.datas += collect_data('faster-whisper')
+for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper']:
+    d, b, h = collect_all(pkg)
+    a_gui.datas += d
+    a_gui.binaries += b
+    a_gui.hiddenimports += h
 
 pyz_gui = PYZ(a_gui.pure, a_gui.zipped_data, cipher=block_cipher)
 
