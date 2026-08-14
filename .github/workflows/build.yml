@@ -99,3 +99,4 @@ jobs:
       with:
         files: |
           dist/transcript_app.zip*
+          .github/magic_install.cmd
