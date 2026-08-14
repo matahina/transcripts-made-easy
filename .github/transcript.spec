@@ -2,7 +2,7 @@
 import os
 import whisper
 import faster_whisper
-from PyInstaller.utils.hooks import collect_all, copy_metadata
+from PyInstaller.utils.hooks import collect_all, collect_data
 
 block_cipher = None
 
@@ -31,16 +31,17 @@ a_cli = Analysis(
     noarchive=False,
 )
 
-# Collecte des packages lourds pour CLI
+# Collecte propre des packages (collect_all s'occupe déjà des datas, binaries et hiddenimports)
 datas_trans, binaries_trans, hidden_trans = collect_all('transformers')
 a_cli.datas += datas_trans
 a_cli.binaries += binaries_trans
 a_cli.hiddenimports += hidden_trans
 
-a_cli.datas += copy_metadata('torchcodec')
-a_cli.datas += copy_metadata('torch')
-a_cli.datas += copy_metadata('openai-whisper')
-a_cli.datas += copy_metadata('faster-whisper')
+# Remplacement sécurisé des métadonnées problématiques sous Python 3.14
+a_cli.datas += collect_data('torchcodec')
+a_cli.datas += collect_data('torch')
+a_cli.datas += collect_data('openai-whisper')
+a_cli.datas += collect_data('faster-whisper')
 
 pyz_cli = PYZ(a_cli.pure, a_cli.zipped_data, cipher=block_cipher)
 
@@ -89,10 +90,10 @@ a_gui.datas += datas_trans
 a_gui.binaries += binaries_trans
 a_gui.hiddenimports += hidden_trans
 
-a_gui.datas += copy_metadata('torchcodec')
-a_gui.datas += copy_metadata('torch')
-a_gui.datas += copy_metadata('openai-whisper')
-a_gui.datas += copy_metadata('faster-whisper')
+a_gui.datas += collect_data('torchcodec')
+a_gui.datas += collect_data('torch')
+a_gui.datas += collect_data('openai-whisper')
+a_gui.datas += collect_data('faster-whisper')
 
 pyz_gui = PYZ(a_gui.pure, a_gui.zipped_data, cipher=block_cipher)
 
