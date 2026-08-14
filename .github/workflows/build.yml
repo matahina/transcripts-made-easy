@@ -60,10 +60,16 @@ jobs:
         pyinstaller --name=transcript_gui --exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --recursive-copy-metadata openai-whisper --recursive-copy-metadata faster-whisper --windowed --add-data "%PATH_FASTER%;faster_whisper/assets" --add-data "%PATH_WHISPER%;whisper/assets" transcript_gui.py
 
 
-    - name: Move configuration files next to the Executable
+    - name: Move configuration files next to the Executables
+      shell: pwsh
       run: |
-        cp vocabulary.txt dist/main/
-        cp token.txt dist/main/
+        # Pour la version CLI
+        Copy-Item -Path "vocabulary.txt" -Destination "dist\transcript_cli\" -Force
+        Copy-Item -Path "token.txt" -Destination "dist\transcript_cli\" -Force
+
+        # Pour la version GUI
+        Copy-Item -Path "vocabulary.txt" -Destination "dist\transcript_gui\" -Force
+        Copy-Item -Path "token.txt" -Destination "dist\transcript_gui\" -Force
     # # 5. Modifier l'étape 5 : Compresser les deux dossiers générés
     # - name: Créer les archives ZIP
     #   run: |
