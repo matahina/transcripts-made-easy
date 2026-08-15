@@ -2,7 +2,7 @@
 import os
 import whisper
 import faster_whisper
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks import collect_all, copy_metadata
 
 block_cipher = None
 
@@ -48,11 +48,15 @@ a_cli.datas += datas_trans
 a_cli.binaries += binaries_trans
 a_cli.hiddenimports += hidden_trans
 
-for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper']:
+for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper', 'hf_xet']:
     d, b, h = collect_all(pkg)
     a_cli.datas += d
     a_cli.binaries += b
     a_cli.hiddenimports += h
+
+a_cli.datas += copy_metadata('transformers')
+a_cli.datas += copy_metadata('timm')        # Souvent requis pour les processeurs de Hugging Face
+a_cli.datas += copy_metadata('regex')       # Parfois requis par transformers
 
 pyz_cli = PYZ(a_cli.pure, a_cli.zipped_data, cipher=block_cipher)
 
@@ -100,11 +104,15 @@ a_gui.datas += datas_trans
 a_gui.binaries += binaries_trans
 a_gui.hiddenimports += hidden_trans
 
-for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper']:
+for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper', 'hf_xet']:
     d, b, h = collect_all(pkg)
     a_gui.datas += d
     a_gui.binaries += b
     a_gui.hiddenimports += h
+
+a_cli.datas += copy_metadata('transformers')
+a_cli.datas += copy_metadata('timm')        # Souvent requis pour les processeurs de Hugging Face
+a_cli.datas += copy_metadata('regex')       # Parfois requis par transformers
 
 pyz_gui = PYZ(a_gui.pure, a_gui.zipped_data, cipher=block_cipher)
 
