@@ -50,7 +50,9 @@ Don't forget to activate your python-venv before using scripts.
 
 > [!IMPORTANT]
 > As you will run ASR models locally on your computer, you'll have to download data from the required model.
-> If you never run that model before (by example 'faster-whisper medium' or 'qwen3 0.6'), you need to check "online mode" or `--online` option to allow connecting to HuggingFace.
+> 
+> If you never run that model before (by example 'faster-whisper medium' or 'qwen3 0.6'), you will need to check "online mode" or `--online` option to allow connecting to HuggingFace.
+>
 > Whisper (not Faster-Whisper not Whisper-Afr derivatives) doesn't require this option, and will automatically downloads data from its own resources.
 
 ## Script
