@@ -40,10 +40,14 @@ jobs:
     #   run: dir /s /b
 
     # 4. Générer les applications CLI et GUI avec un seul dossier _internal
+    # Old pyinstaller Win11 local commands
+    # pyinstaller --exclude-module matplotlib --exclude-module tkinter --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch transcript_cli.py
+    # pyinstaller --exclude-module matplotlib --exclude-module PyQt5 --collect-all transformers --copy-metadata torchcodec --copy-metadata torch --windowed transcript_gui.py
     - name: Compiler avec PyInstaller via Spec
       shell: cmd
       run: |
         pyinstaller .github/transcript.spec
+
 
     - name: Move configuration files next to the Executables
       shell: pwsh
