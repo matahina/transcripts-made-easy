@@ -55,9 +55,11 @@ for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper', 'hf_xet']
     a_cli.hiddenimports += h
 
 a_cli.datas += copy_metadata('transformers')
-a_cli.datas += copy_metadata('timm')        # Souvent requis pour les processeurs de Hugging Face
-a_cli.datas += copy_metadata('regex')       # Parfois requis par transformers
-
+try:
+    a_cli.datas += copy_metadata('timm')        # Souvent requis pour les processeurs de Hugging Face
+    a_cli.datas += copy_metadata('regex')       # Parfois requis par transformers
+except:
+    pass
 pyz_cli = PYZ(a_cli.pure, a_cli.zipped_data, cipher=block_cipher)
 
 exe_cli = EXE(
@@ -110,9 +112,12 @@ for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper', 'hf_xet']
     a_gui.binaries += b
     a_gui.hiddenimports += h
 
-a_cli.datas += copy_metadata('transformers')
-a_cli.datas += copy_metadata('timm')        # Souvent requis pour les processeurs de Hugging Face
-a_cli.datas += copy_metadata('regex')       # Parfois requis par transformers
+a_gui.datas += copy_metadata('transformers')
+try:
+    a_gui.datas += copy_metadata('timm')        # Souvent requis pour les processeurs de Hugging Face
+    a_gui.datas += copy_metadata('regex')       # Parfois requis par transformers
+except:
+    pass
 
 pyz_gui = PYZ(a_gui.pure, a_gui.zipped_data, cipher=block_cipher)
 
