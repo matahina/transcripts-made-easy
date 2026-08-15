@@ -173,7 +173,7 @@ da_list = []
 for mime, exts in sorted(media_map.items()):
     da_list = da_list + exts
 
-da_list_no_ffmpeg = [".wav", ".flag", ".ogg", ".mp3"]
+da_list_no_ffmpeg = [".wav", ".flac", ".ogg", ".mp3"]
 
 the_languages = {}
 the_helps = {}
