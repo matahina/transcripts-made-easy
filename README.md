@@ -47,6 +47,12 @@ Don't forget to activate your python-venv before using scripts.
 
 # How-to use script or UI
 
+
+> [!IMPORTANT]
+> As you will run ASR models locally on your computer, you'll have to download data from the required model.
+> If you never run that model before (by example 'faster-whisper medium' or 'qwen3 0.6'), you need to check "online mode" or `--online` option to allow connecting to HuggingFace.
+> Whisper (not Faster-Whisper not Whisper-Afr derivatives) doesn't require this option, and will automatically downloads data from its own resources.
+
 ## Script
 
 ```bash
@@ -90,6 +96,23 @@ See cli options for explanations.
 ## Special use case of Whisper-Afr
 
 This model requires connection to HuggingFace, being logged in, so you have to ask for access to this model (https://huggingface.co/Sunbird/faster-whisper-51-african-languages) then fill an access token in the file `token.txt` to be able to use it.
+
+# Disk space usage
+
+### Python packages
+
+With the lazy Windows installer, all Python packages are bundled in `_internal` directory.
+
+With python pip, packages are either in your venv directory (`asr_stuff` in the how-to) on Linux; on in `C:\Users\<your_username>\AppData\Local\Programs\Python\Python3X\Lib\site-packages\` on Windows.
+
+Disk usage for python packages can be up to 3 or 4 GB.
+
+### For models data
+
+Models data are downloaded in `cache` directory, at the same level as the python scripts.
+
+You can remove it to save disk space. Remember model data will have to be downloaded again to be run (with 'online' option).
+
 
 # Sources, References and Resources
 
