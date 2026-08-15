@@ -16,6 +16,10 @@ try:
 except:
     pass
 
+# Allow lazy install to get more libs
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0" 
+
 def elem_to_item(elem, afr=False, nv=False, qw=False):
     if type(elem) != dict:
         import dataclasses
