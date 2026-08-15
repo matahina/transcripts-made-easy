@@ -30,4 +30,4 @@ echo.
 echo Done...
 echo Fini!
 pause
-REM (goto) 2>nul & del "%~f0"
+(goto) 2>nul & del "%~f0"
