@@ -2,7 +2,7 @@
 import os
 import whisper
 import faster_whisper
-from PyInstaller.utils.hooks import collect_all, copy_metadata
+from PyInstaller.utils.hooks import collect_all, copy_metadata, collect_data_files
 
 block_cipher = None
 
@@ -32,7 +32,15 @@ a_cli = Analysis(
         (faster_assets, 'faster_whisper/assets'),
         (whisper_assets, 'whisper/assets')
     ],
-    hiddenimports=[],
+    hiddenimports=[
+        'transformers.models.auto.processing_auto',
+        'transformers.models.auto.tokenization_auto',
+        'transformers.models.auto.configuration_auto',
+        # Ajoutez ces deux lignes si vous utilisez un modèle Nemotron-4 ou similaire basé sur Llama/Gemma
+        # 'transformers.models.llama',
+        # 'transformers.models.gemma',
+        'tokenizers'
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -54,12 +62,28 @@ for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper', 'hf_xet']
     a_cli.binaries += b
     a_cli.hiddenimports += h
 
-a_cli.datas += copy_metadata('transformers')
-try:
-    a_cli.datas += copy_metadata('timm')        # Souvent requis pour les processeurs de Hugging Face
-    a_cli.datas += copy_metadata('regex')       # Parfois requis par transformers
-except:
-    pass
+a_cli.datas += collect_data_files('transformers', include_py_files=True)
+pkgs_to_collect = [
+    'transformers', 
+    'torchcodec', 
+    'torch', 
+    'openai-whisper', 
+    'faster-whisper', 
+    'hf_xet', 
+    'huggingface_hub', 
+    'tokenizers',
+    'safetensors' # Indispensable pour charger les poids .safetensors de Nemotron
+]
+
+for pkg in pkgs_to_collect:
+    try:
+        d, b, h = collect_all(pkg)
+        a_cli.datas += d
+        a_cli.binaries += b
+        a_cli.hiddenimports += h
+        a_cli.datas += copy_metadata(pkg)
+    except Exception:
+        pass
 pyz_cli = PYZ(a_cli.pure, a_cli.zipped_data, cipher=block_cipher)
 
 exe_cli = EXE(
@@ -91,7 +115,15 @@ a_gui = Analysis(
         (faster_assets, 'faster_whisper/assets'),
         (whisper_assets, 'whisper/assets')
     ],
-    hiddenimports=[],
+    hiddenimports=[
+        'transformers.models.auto.processing_auto',
+        'transformers.models.auto.tokenization_auto',
+        'transformers.models.auto.configuration_auto',
+        # Ajoutez ces deux lignes si vous utilisez un modèle Nemotron-4 ou similaire basé sur Llama/Gemma
+        # 'transformers.models.llama',
+        # 'transformers.models.gemma',
+        'tokenizers'
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -112,12 +144,28 @@ for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper', 'hf_xet']
     a_gui.binaries += b
     a_gui.hiddenimports += h
 
-a_gui.datas += copy_metadata('transformers')
-try:
-    a_gui.datas += copy_metadata('timm')        # Souvent requis pour les processeurs de Hugging Face
-    a_gui.datas += copy_metadata('regex')       # Parfois requis par transformers
-except:
-    pass
+a_gui.datas += collect_data_files('transformers', include_py_files=True)
+pkgs_to_collect = [
+    'transformers', 
+    'torchcodec', 
+    'torch', 
+    'openai-whisper', 
+    'faster-whisper', 
+    'hf_xet', 
+    'huggingface_hub', 
+    'tokenizers',
+    'safetensors' # Indispensable pour charger les poids .safetensors de Nemotron
+]
+
+for pkg in pkgs_to_collect:
+    try:
+        d, b, h = collect_all(pkg)
+        a_gui.datas += d
+        a_gui.binaries += b
+        a_gui.hiddenimports += h
+        a_gui.datas += copy_metadata(pkg)
+    except Exception:
+        pass
 
 pyz_gui = PYZ(a_gui.pure, a_gui.zipped_data, cipher=block_cipher)
 
