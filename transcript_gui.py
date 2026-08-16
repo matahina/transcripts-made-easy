@@ -531,7 +531,7 @@ class TranscriptGUI(tk.Tk):
             ToolTip(self.language_combo, the_helps["nemotron"])
             the_values = ["auto"] + the_languages["nemotron"]
             self.beam_size.configure(state="disabled")
-            self.beam_size.set("None")
+            self.beam_size.set(0)
             self.param_combo.configure(
                 values = ["None"],
                 state="disabled",
@@ -553,7 +553,7 @@ class TranscriptGUI(tk.Tk):
             self.translate_var.set(False)
             ToolTip(self.language_combo, the_helps["parakeet"])
             self.beam_size.configure(state="disabled")
-            self.beam_size.set("None")
+            self.beam_size.set(0)
             self.param_combo.configure(
                 values = ["None"],
                 state="disabled",
