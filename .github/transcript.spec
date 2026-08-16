@@ -1,134 +1,179 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os
+
 import whisper
 import faster_whisper
 
 from PyInstaller.utils.hooks import collect_all, copy_metadata
 
 
-# ============================================================
-# CONFIGURATION
-# ============================================================
-
 block_cipher = None
+
+
+# ============================================================
+# ASSETS WHISPER / FASTER-WHISPER
+# ============================================================
 
 whisper_assets = os.path.join(
     os.path.dirname(whisper.__file__),
-    'assets'
+    "assets"
 )
 
 faster_assets = os.path.join(
     os.path.dirname(faster_whisper.__file__),
-    'assets'
+    "assets"
 )
+
+
+# ============================================================
+# DONNÉES COMMUNES AUX DEUX EXÉCUTABLES
+# ============================================================
+#
+# IMPORTANT :
+#
+# Tout ce qui vient de collect_all() ou copy_metadata()
+# doit être ajouté ICI, AVANT Analysis().
+#
+# Ne plus faire ensuite :
+#
+#     a_cli.datas += ...
+#     a_cli.binaries += ...
+#
+# avec les retours de collect_all/copy_metadata.
+#
+# ============================================================
+
+common_datas = [
+    (faster_assets, "faster_whisper/assets"),
+    (whisper_assets, "whisper/assets"),
+]
+
+common_binaries = []
+
+common_hiddenimports = [
+    # Transformers Auto
+    "transformers.models.auto.processing_auto",
+    "transformers.models.auto.tokenization_auto",
+    "transformers.models.auto.configuration_auto",
+
+    # Transformers audio / processor
+    "transformers.audio_utils",
+    "transformers.processing_utils",
+
+    # Qwen3-ASR
+    "qwen_asr",
+    "qwen_asr.core",
+    "qwen_asr.core.transformers_backend",
+    "qwen_asr.inference",
+    "qwen_asr.inference.qwen3_asr",
+
+    # Tokenizers
+    "tokenizers",
+]
 
 
 # ============================================================
 # PACKAGES À COLLECTER
 # ============================================================
 #
-# IMPORTANT :
-# - torchcodec NE doit PAS être dans collect_all()
-# - ses metadata sont ajoutées séparément avec copy_metadata()
+# torchcodec n'est volontairement PAS ici.
+#
+# On a besoin surtout de ses metadata pour :
+#
+# importlib.metadata.version("torchcodec")
+#
+# dans transformers.audio_utils.
 #
 # ============================================================
 
 pkgs_to_collect = [
-    'transformers',
-    'torch',
-    'openai-whisper',
-    'faster-whisper',
-    'hf_xet',
-    'huggingface_hub',
-    'tokenizers',
-    'safetensors',
-    'qwen_asr',
+    "transformers",
+    "torch",
+    "openai-whisper",
+    "faster-whisper",
+    "hf_xet",
+    "huggingface_hub",
+    "tokenizers",
+    "safetensors",
+    "qwen_asr",
 ]
 
 
-# ============================================================
-# HIDDEN IMPORTS COMMUNS
-# ============================================================
+for pkg in pkgs_to_collect:
+    print(f"Collecte de : {pkg}")
 
-common_hiddenimports = [
-    # Transformers Auto
-    'transformers.models.auto.processing_auto',
-    'transformers.models.auto.tokenization_auto',
-    'transformers.models.auto.configuration_auto',
+    datas, binaries, hiddenimports = collect_all(pkg)
 
-    # Transformers audio
-    'transformers.audio_utils',
-    'transformers.processing_utils',
-
-    # Qwen3-ASR
-    'qwen_asr',
-    'qwen_asr.core',
-    'qwen_asr.core.transformers_backend',
-    'qwen_asr.inference',
-    'qwen_asr.inference.qwen3_asr',
-
-    # Tokenizers
-    'tokenizers',
-]
-
-
-# ============================================================
-# FONCTION DE COLLECTE
-# ============================================================
-
-def collect_packages(analysis):
-    for pkg in pkgs_to_collect:
-
-        print(f'Collecte de : {pkg}')
-
-        d, b, h = collect_all(pkg)
-
-        analysis.datas += d
-        analysis.binaries += b
-        analysis.hiddenimports += h
+    common_datas += datas
+    common_binaries += binaries
+    common_hiddenimports += hiddenimports
 
 
 # ============================================================
 # METADATA
 # ============================================================
 #
-# Transformers fait ceci dans audio_utils.py :
+# copy_metadata() utilise le NOM DE LA DISTRIBUTION installée.
 #
-#     importlib.metadata.version("torchcodec")
+# Exemple :
 #
-# Il faut donc que torchcodec-*.dist-info soit présent
-# dans le dossier final de l'application.
-#
-# copy_metadata() est prévu précisément pour ce cas.
+# module importé : qwen_asr
+# distribution   : qwen-asr
 #
 # ============================================================
 
-def collect_metadata(analysis):
+metadata_packages = [
+    "torchcodec",
+    "torch",
+    "transformers",
+    "huggingface_hub",
+    "tokenizers",
+    "safetensors",
+    "qwen-asr",
+]
 
-    metadata_packages = [
-        'torchcodec',
-        'torch',
-        'transformers',
-        'huggingface_hub',
-        'tokenizers',
-        'safetensors',
-        'qwen_asr',
-    ]
 
-    for pkg in metadata_packages:
+for pkg in metadata_packages:
+    print(f"Metadata de : {pkg}")
 
-        print(f'Metadata de : {pkg}')
+    try:
+        metadata = copy_metadata(pkg)
 
-        try:
-            metadata = copy_metadata(pkg)
-            analysis.datas += metadata
+        common_datas += metadata
 
-        except Exception as e:
-            print(
-                f'WARNING: impossible de copier les metadata '
-                f'de {pkg}: {e}'
-            )
+        print(
+            f"OK metadata {pkg}: "
+            f"{len(metadata)} entrée(s)"
+        )
+
+    except Exception as e:
+        print(
+            f"WARNING: impossible de copier "
+            f"les metadata de {pkg}: {e}"
+        )
+
+
+# ============================================================
+# DEBUG IMPORTANT POUR TORCHCODEC
+# ============================================================
+
+print("")
+print("============================================")
+print("VÉRIFICATION METADATA TORCHCODEC")
+print("============================================")
+
+torchcodec_metadata = [
+    item
+    for item in common_datas
+    if "torchcodec" in str(item).lower()
+]
+
+for item in torchcodec_metadata:
+    print(item)
+
+print("============================================")
+print("")
 
 
 # ============================================================
@@ -136,24 +181,15 @@ def collect_metadata(analysis):
 # ============================================================
 
 a_cli = Analysis(
-    ['../transcript_cli.py'],
+    ["../transcript_cli.py"],
 
     pathex=[],
 
-    binaries=[],
+    binaries=common_binaries.copy(),
 
-    datas=[
-        (
-            faster_assets,
-            'faster_whisper/assets'
-        ),
-        (
-            whisper_assets,
-            'whisper/assets'
-        ),
-    ],
+    datas=common_datas.copy(),
 
-    hiddenimports=common_hiddenimports,
+    hiddenimports=common_hiddenimports.copy(),
 
     hookspath=[],
 
@@ -162,8 +198,8 @@ a_cli = Analysis(
     runtime_hooks=[],
 
     excludes=[
-        'matplotlib',
-        'PyQt5',
+        "matplotlib",
+        "PyQt5",
     ],
 
     win_no_prefer_redirects=False,
@@ -176,13 +212,6 @@ a_cli = Analysis(
 )
 
 
-# Collecte des packages
-collect_packages(a_cli)
-
-# Collecte des metadata
-collect_metadata(a_cli)
-
-
 # ============================================================
 # PYZ CLI
 # ============================================================
@@ -190,7 +219,7 @@ collect_metadata(a_cli)
 pyz_cli = PYZ(
     a_cli.pure,
     a_cli.zipped_data,
-    cipher=block_cipher
+    cipher=block_cipher,
 )
 
 
@@ -207,7 +236,7 @@ exe_cli = EXE(
 
     exclude_binaries=True,
 
-    name='transcript_cli',
+    name="transcript_cli",
 
     debug=False,
 
@@ -234,26 +263,25 @@ exe_cli = EXE(
 # ============================================================
 # 2. GUI
 # ============================================================
+#
+# Je conserve ici le comportement de ton spec actuel :
+# le deuxième EXE utilise également transcript_cli.py,
+# avec console=False.
+#
+# Ton spec actuel fait bien cela.
+#
+# ============================================================
 
 a_gui = Analysis(
-    ['../transcript_cli.py'],
+    ["../transcript_cli.py"],
 
     pathex=[],
 
-    binaries=[],
+    binaries=common_binaries.copy(),
 
-    datas=[
-        (
-            faster_assets,
-            'faster_whisper/assets'
-        ),
-        (
-            whisper_assets,
-            'whisper/assets'
-        ),
-    ],
+    datas=common_datas.copy(),
 
-    hiddenimports=common_hiddenimports,
+    hiddenimports=common_hiddenimports.copy(),
 
     hookspath=[],
 
@@ -262,8 +290,8 @@ a_gui = Analysis(
     runtime_hooks=[],
 
     excludes=[
-        'matplotlib',
-        'PyQt5',
+        "matplotlib",
+        "PyQt5",
     ],
 
     win_no_prefer_redirects=False,
@@ -276,13 +304,6 @@ a_gui = Analysis(
 )
 
 
-# Collecte des packages
-collect_packages(a_gui)
-
-# Collecte des metadata
-collect_metadata(a_gui)
-
-
 # ============================================================
 # PYZ GUI
 # ============================================================
@@ -290,7 +311,7 @@ collect_metadata(a_gui)
 pyz_gui = PYZ(
     a_gui.pure,
     a_gui.zipped_data,
-    cipher=block_cipher
+    cipher=block_cipher,
 )
 
 
@@ -307,7 +328,7 @@ exe_gui = EXE(
 
     exclude_binaries=True,
 
-    name='transcript_gui',
+    name="transcript_gui",
 
     debug=False,
 
@@ -332,15 +353,22 @@ exe_gui = EXE(
 
 
 # ============================================================
-# 3. DOSSIER FINAL UNIQUE
+# 3. DOSSIER FINAL COMMUN
 # ============================================================
+#
+# Résultat :
 #
 # dist/
 # └── transcript_app/
 #     ├── transcript_cli.exe
 #     ├── transcript_gui.exe
-#     ├── _internal/
-#     └── ...
+#     └── _internal/
+#
+# IMPORTANT :
+# Aucun clean_toc().
+#
+# Les Analysis() ont déjà converti les datas/binaries
+# au format TOC interne correct.
 #
 # ============================================================
 
@@ -363,5 +391,5 @@ coll = COLLECT(
 
     upx_exclude=[],
 
-    name='transcript_app',
+    name="transcript_app",
 )
