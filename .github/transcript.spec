@@ -135,45 +135,10 @@ metadata_packages = [
 
 
 for pkg in metadata_packages:
-    print(f"Metadata de : {pkg}")
-
     try:
-        metadata = copy_metadata(pkg)
-
-        common_datas += metadata
-
-        print(
-            f"OK metadata {pkg}: "
-            f"{len(metadata)} entrée(s)"
-        )
-
+        common_datas += copy_metadata(pkg)
     except Exception as e:
-        print(
-            f"WARNING: impossible de copier "
-            f"les metadata de {pkg}: {e}"
-        )
-
-
-# ============================================================
-# DEBUG IMPORTANT POUR TORCHCODEC
-# ============================================================
-
-print("")
-print("============================================")
-print("VÉRIFICATION METADATA TORCHCODEC")
-print("============================================")
-
-torchcodec_metadata = [
-    item
-    for item in common_datas
-    if "torchcodec" in str(item).lower()
-]
-
-for item in torchcodec_metadata:
-    print(item)
-
-print("============================================")
-print("")
+        print(f"WARNING metadata {pkg}: {e}")
 
 
 # ============================================================
