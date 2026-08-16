@@ -231,6 +231,9 @@ the_general_help = '''For [whisper] languages, it will autodetect unless you use
 
 def launch_transcript(the_model, input_files, the_language_whisper, the_language_whisper_afr, the_language_nemotron, the_language_qwen3, the_params_whisper, the_params_qwen3, mode_whisper_translate, mode_cpu, mode_int8, mode_no_ffmpeg, the_beam_size, mode_srt, mode_online, the_prompt, mode_vocabulary, mode_warnings, cli_mode=True):
 
+
+    from huggingface_hub import logging as hf_logging
+
     if not mode_warnings:
         os.environ["TORCH_CPP_LOG_LEVEL"] = "ERROR"
         os.environ["TRANSFORMERS_VERBOSITY"]="critical"
@@ -238,13 +241,11 @@ def launch_transcript(the_model, input_files, the_language_whisper, the_language
         warnings.filterwarnings("ignore", module=r"torch.*")
         warnings.filterwarnings("ignore", module="librosa")
         warnings.filterwarnings("ignore", category=UserWarning)
-        warnings.filterwarnings(
-             "ignore",
-             message=r".*You are sending unauthenticated requests to the HF Hub.*"
-         )
+        hf_logging.set_verbosity_error()
         # warnings.filterwarnings("ignore", message="PySoundFile failed")
         # warnings.filterwarnings("ignore", message="expandable_segments not supported on this platform")
-
+    else:
+        hf_logging.set_verbosity_warning()
     if not mode_cpu:
         os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 

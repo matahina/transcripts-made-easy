@@ -48,29 +48,6 @@ jobs:
       shell: cmd
       run: |
         pyinstaller .github/transcript.spec --clean
-        
-    - name: Inspect torchcodec in dist
-      shell: pwsh
-      run: |
-        Write-Host "=== TORCHCODEC FILES IN DIST ==="
-        Get-ChildItem -Path dist -Recurse -Force |
-          Where-Object { $_.FullName -match "torchcodec" } |
-          Select-Object FullName
-
-    - name: Inspect torchcodec metadata
-      shell: pwsh
-      run: |
-        Write-Host "=== TORCHCODEC DIST-INFO ==="
-    
-        Get-ChildItem -Path dist -Recurse -Directory -Force |
-          Where-Object { $_.Name -like "torchcodec-*.dist-info" } |
-          ForEach-Object {
-            Write-Host "FOUND:"
-            Write-Host $_.FullName
-    
-            Write-Host "--- CONTENT ---"
-            Get-ChildItem $_.FullName | Select-Object Name
-          }
     
     - name: Move configuration files next to the Executables
       shell: pwsh
@@ -92,7 +69,7 @@ jobs:
         # Vérification de la taille (Coupure à 1.5 Go par sécurité)
         $file = Get-Item "dist/$target.zip"
         if ($file.Length -gt 1500000000) {
-            Write-Host "$target.zip dépasse 1.5 Go (${file.Length} octets). Découpage en cours..."
+            Write-Host "$target.zip depasse 1.5 Go (${file.Length} octets). Decoupage en cours..."
 
             $buffer = New-Object byte[] 104857600  # Tampon de 100 Mo pour aller vite
             $inputStream = [System.IO.File]::OpenRead($file.FullName)

@@ -454,7 +454,12 @@ class TranscriptGUI(tk.Tk):
             self.vocab_use.configure(state="normal")
             self.prompt_text.configure(state="normal", bg = self.original_color)
             self.allow_online.configure(state="normal")
-            self.online_var.set(False)
+            if not "faster" in model and not "afr" in model:
+                self.allow_online.configure(state="disabled")
+                self.online_var.set(False)
+            elif "afr" in model:
+                self.allow_online.configure(state="disabled")
+                self.online_var.set(True)
             the_values = ["auto"] + the_languages["whisper"]
             ToolTip(self.language_combo, the_helps["whisper"])
             self.beam_size.configure(state="readonly")
@@ -467,8 +472,6 @@ class TranscriptGUI(tk.Tk):
                 )
             self.param_combo.set(self.param_combo.get() if self.param_combo.get() in self.param_combo["values"] else "turbo")
             if not "faster" in model:
-                self.allow_online.configure(state="disabled")
-                self.online_var.set(False)
                 self.superquantif.configure(state="disabled")
                 self.int8_var.set(False)
                 self.param_combo.configure(
@@ -477,8 +480,6 @@ class TranscriptGUI(tk.Tk):
                     )
                 self.param_combo.set(self.param_combo.get() if self.param_combo.get() in self.param_combo["values"] else self.param_combo["values"][0])
             if "-afr" in model:
-                self.allow_online.configure(state="disabled")
-                self.online_var.set(True)
                 self.superquantif.configure(state="normal")
                 self.translate_button.configure(state="disabled")
                 self.translate_var.set(False)
@@ -498,7 +499,6 @@ class TranscriptGUI(tk.Tk):
             self.vocab_use.configure(state="normal")
             self.prompt_text.configure(state="normal", bg = self.original_color)
             self.allow_online.configure(state="normal")
-            self.online_var.set(False)
             self.superquantif.configure(state="disabled")
             self.int8_var.set(False)
             self.translate_button.configure(state="disabled")
@@ -523,7 +523,6 @@ class TranscriptGUI(tk.Tk):
             self.prompt_text.delete("1.0", tk.END)
             self.prompt_text.configure(state="disabled")
             self.allow_online.configure(state="normal")
-            self.online_var.set(False)
             self.superquantif.configure(state="disabled")
             self.int8_var.set(False)
             self.translate_button.configure(state="disabled")
@@ -546,7 +545,6 @@ class TranscriptGUI(tk.Tk):
             self.prompt_text.configure(state="disabled", bg=self.magic_background)
             self.prompt_text.delete("1.0", tk.END)
             self.allow_online.configure(state="normal")
-            self.online_var.set(False)
             self.superquantif.configure(state="disabled")
             self.int8_var.set(False)
             self.translate_button.configure(state="disabled")
