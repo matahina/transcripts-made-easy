@@ -126,6 +126,7 @@ jobs:
         tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'manual-build' }}
         name: ${{ github.ref_type == 'tag' && github.ref_name || 'Manual Build' }}
         prerelease: false
+        make_latest: true
         files: |
           dist/transcript_app.zip*
           .github/magic_install.cmd
