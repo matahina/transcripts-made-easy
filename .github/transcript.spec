@@ -4,6 +4,23 @@ import whisper
 import faster_whisper
 from PyInstaller.utils.hooks import collect_all, copy_metadata, collect_data_files
 
+site_packages = os.path.join(
+    sys.prefix,
+    "Lib",
+    "site-packages"
+)
+
+print("PYTHON PREFIX:", sys.prefix)
+print("SITE PACKAGES:", site_packages)
+
+print(
+    "TORCHCODEC DIST-INFO:",
+    [
+        x for x in os.listdir(site_packages)
+        if "torchcodec" in x.lower()
+    ]
+)
+
 block_cipher = None
 
 whisper_assets = os.path.join(os.path.dirname(whisper.__file__), 'assets')
