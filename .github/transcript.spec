@@ -1,76 +1,38 @@
 # -*- mode: python ; coding: utf-8 -*-
-import os, sys
+
+import os
 import whisper
 import faster_whisper
-from PyInstaller.utils.hooks import collect_all, copy_metadata, collect_data_files
 
-site_packages = os.path.join(
-    sys.prefix,
-    "Lib",
-    "site-packages"
-)
+from PyInstaller.utils.hooks import collect_all, copy_metadata
 
-print("PYTHON PREFIX:", sys.prefix)
-print("SITE PACKAGES:", site_packages)
 
-print(
-    "TORCHCODEC DIST-INFO:",
-    [
-        x for x in os.listdir(site_packages)
-        if "torchcodec" in x.lower()
-    ]
-)
+# ============================================================
+# CONFIGURATION
+# ============================================================
 
 block_cipher = None
 
-whisper_assets = os.path.join(os.path.dirname(whisper.__file__), 'assets')
-faster_assets = os.path.join(os.path.dirname(faster_whisper.__file__), 'assets')
-
-# Fonction de sécurité pour nettoyer les résidus mal formés de Python 3.14
-def clean_toc(toc_list):
-    cleaned = []
-    for item in toc_list:
-        # Une entrée valide dans PyInstaller DOIT avoir 3 éléments
-        if isinstance(item, (list, tuple)) and len(item) == 3:
-            cleaned.append(item)
-        # Si PyInstaller a généré un tuple à 2 éléments, on tente de le corriger en lui attribuant le type 'DATA'
-        elif isinstance(item, (list, tuple)) and len(item) == 2:
-            cleaned.append((item[0], item[1], 'DATA'))
-    return cleaned
-
-# ==========================================
-# 1. ANALYSE ET CONFIGURATION POUR CLI
-# ==========================================
-a_cli = Analysis(
-    ['../transcript_cli.py'],
-    pathex=[],
-    binaries=[],
-    datas=[
-        (faster_assets, 'faster_whisper/assets'),
-        (whisper_assets, 'whisper/assets')
-    ],
-    hiddenimports=[
-        'transformers.models.auto.processing_auto',
-        'transformers.models.auto.tokenization_auto',
-        'transformers.models.auto.configuration_auto',
-
-        'qwen_asr',
-        'qwen_asr.core',
-        'qwen_asr.core.transformers_backend',
-        'qwen_asr.inference',
-        'qwen_asr.inference.qwen3_asr',
-
-        'tokenizers',
-    ],
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=['matplotlib', 'PyQt5'],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
-    noarchive=False,
+whisper_assets = os.path.join(
+    os.path.dirname(whisper.__file__),
+    'assets'
 )
+
+faster_assets = os.path.join(
+    os.path.dirname(faster_whisper.__file__),
+    'assets'
+)
+
+
+# ============================================================
+# PACKAGES À COLLECTER
+# ============================================================
+#
+# IMPORTANT :
+# - torchcodec NE doit PAS être dans collect_all()
+# - ses metadata sont ajoutées séparément avec copy_metadata()
+#
+# ============================================================
 
 pkgs_to_collect = [
     'transformers',
@@ -84,184 +46,322 @@ pkgs_to_collect = [
     'qwen_asr',
 ]
 
-for pkg in pkgs_to_collect:
-    d, b, h = collect_all(pkg)
-    a_cli.datas += d
-    a_cli.binaries += b
-    a_cli.hiddenimports += h
 
 # ============================================================
-# torchcodec : ajouter manuellement ses metadata
+# HIDDEN IMPORTS COMMUNS
 # ============================================================
 
-site_packages = os.path.join(
-    sys.prefix,
-    'Lib',
-    'site-packages'
+common_hiddenimports = [
+    # Transformers Auto
+    'transformers.models.auto.processing_auto',
+    'transformers.models.auto.tokenization_auto',
+    'transformers.models.auto.configuration_auto',
+
+    # Transformers audio
+    'transformers.audio_utils',
+    'transformers.processing_utils',
+
+    # Qwen3-ASR
+    'qwen_asr',
+    'qwen_asr.core',
+    'qwen_asr.core.transformers_backend',
+    'qwen_asr.inference',
+    'qwen_asr.inference.qwen3_asr',
+
+    # Tokenizers
+    'tokenizers',
+]
+
+
+# ============================================================
+# FONCTION DE COLLECTE
+# ============================================================
+
+def collect_packages(analysis):
+    for pkg in pkgs_to_collect:
+
+        print(f'Collecte de : {pkg}')
+
+        d, b, h = collect_all(pkg)
+
+        analysis.datas += d
+        analysis.binaries += b
+        analysis.hiddenimports += h
+
+
+# ============================================================
+# METADATA
+# ============================================================
+#
+# Transformers fait ceci dans audio_utils.py :
+#
+#     importlib.metadata.version("torchcodec")
+#
+# Il faut donc que torchcodec-*.dist-info soit présent
+# dans le dossier final de l'application.
+#
+# copy_metadata() est prévu précisément pour ce cas.
+#
+# ============================================================
+
+def collect_metadata(analysis):
+
+    metadata_packages = [
+        'torchcodec',
+        'torch',
+        'transformers',
+        'huggingface_hub',
+        'tokenizers',
+        'safetensors',
+        'qwen_asr',
+    ]
+
+    for pkg in metadata_packages:
+
+        print(f'Metadata de : {pkg}')
+
+        try:
+            metadata = copy_metadata(pkg)
+            analysis.datas += metadata
+
+        except Exception as e:
+            print(
+                f'WARNING: impossible de copier les metadata '
+                f'de {pkg}: {e}'
+            )
+
+
+# ============================================================
+# 1. CLI
+# ============================================================
+
+a_cli = Analysis(
+    ['../transcript_cli.py'],
+
+    pathex=[],
+
+    binaries=[],
+
+    datas=[
+        (
+            faster_assets,
+            'faster_whisper/assets'
+        ),
+        (
+            whisper_assets,
+            'whisper/assets'
+        ),
+    ],
+
+    hiddenimports=common_hiddenimports,
+
+    hookspath=[],
+
+    hooksconfig={},
+
+    runtime_hooks=[],
+
+    excludes=[
+        'matplotlib',
+        'PyQt5',
+    ],
+
+    win_no_prefer_redirects=False,
+
+    win_private_assemblies=False,
+
+    cipher=block_cipher,
+
+    noarchive=False,
 )
 
-torchcodec_dist_info = next(
-    (
-        os.path.join(site_packages, d)
-        for d in os.listdir(site_packages)
-        if d.lower().startswith('torchcodec-')
-        and d.lower().endswith('.dist-info')
-    ),
-    None
+
+# Collecte des packages
+collect_packages(a_cli)
+
+# Collecte des metadata
+collect_metadata(a_cli)
+
+
+# ============================================================
+# PYZ CLI
+# ============================================================
+
+pyz_cli = PYZ(
+    a_cli.pure,
+    a_cli.zipped_data,
+    cipher=block_cipher
 )
 
-if torchcodec_dist_info is None:
-    raise RuntimeError(
-        f"Impossible de trouver torchcodec-*.dist-info dans : "
-        f"{site_packages}"
-    )
 
-a_cli.datas.append(
-    (
-        torchcodec_dist_info,
-        os.path.basename(torchcodec_dist_info)
-    )
-)
-
-pyz_cli = PYZ(a_cli.pure, a_cli.zipped_data, cipher=block_cipher)
+# ============================================================
+# EXE CLI
+# ============================================================
 
 exe_cli = EXE(
     pyz_cli,
+
     a_cli.scripts,
+
     [],
+
     exclude_binaries=True,
+
     name='transcript_cli',
+
     debug=False,
+
     bootloader_ignore_signals=False,
+
     strip=False,
+
     upx=True,
+
     console=True,
+
     disable_windowed_traceback=False,
+
     argv_emulation=False,
+
     target_arch=None,
+
     codesign_identity=None,
+
     entitlements_file=None,
 )
 
-# ==========================================
-# 2. ANALYSE ET CONFIGURATION POUR GUI
-# ==========================================
+
+# ============================================================
+# 2. GUI
+# ============================================================
+
 a_gui = Analysis(
     ['../transcript_cli.py'],
+
     pathex=[],
+
     binaries=[],
+
     datas=[
-        (faster_assets, 'faster_whisper/assets'),
-        (whisper_assets, 'whisper/assets')
+        (
+            faster_assets,
+            'faster_whisper/assets'
+        ),
+        (
+            whisper_assets,
+            'whisper/assets'
+        ),
     ],
-    hiddenimports=[
-        'transformers.models.auto.processing_auto',
-        'transformers.models.auto.tokenization_auto',
-        'transformers.models.auto.configuration_auto',
 
-        'qwen_asr',
-        'qwen_asr.core',
-        'qwen_asr.core.transformers_backend',
-        'qwen_asr.inference',
-        'qwen_asr.inference.qwen3_asr',
+    hiddenimports=common_hiddenimports,
 
-        'tokenizers',
-    ],
     hookspath=[],
+
     hooksconfig={},
+
     runtime_hooks=[],
-    excludes=['matplotlib', 'PyQt5'],
+
+    excludes=[
+        'matplotlib',
+        'PyQt5',
+    ],
+
     win_no_prefer_redirects=False,
+
     win_private_assemblies=False,
+
     cipher=block_cipher,
+
     noarchive=False,
 )
 
-pkgs_to_collect = [
-    'transformers',
-    'torch',
-    'openai-whisper',
-    'faster-whisper',
-    'hf_xet',
-    'huggingface_hub',
-    'tokenizers',
-    'safetensors',
-    'qwen_asr',
-]
 
-for pkg in pkgs_to_collect:
-    d, b, h = collect_all(pkg)
-    a_gui.datas += d
-    a_gui.binaries += b
-    a_gui.hiddenimports += h
+# Collecte des packages
+collect_packages(a_gui)
+
+# Collecte des metadata
+collect_metadata(a_gui)
+
 
 # ============================================================
-# torchcodec : ajouter manuellement ses metadata
+# PYZ GUI
 # ============================================================
 
-site_packages = os.path.join(
-    sys.prefix,
-    'Lib',
-    'site-packages'
+pyz_gui = PYZ(
+    a_gui.pure,
+    a_gui.zipped_data,
+    cipher=block_cipher
 )
 
-torchcodec_dist_info = next(
-    (
-        os.path.join(site_packages, d)
-        for d in os.listdir(site_packages)
-        if d.lower().startswith('torchcodec-')
-        and d.lower().endswith('.dist-info')
-    ),
-    None
-)
 
-if torchcodec_dist_info is None:
-    raise RuntimeError(
-        f"Impossible de trouver torchcodec-*.dist-info dans : "
-        f"{site_packages}"
-    )
-
-a_gui.datas.append(
-    (
-        torchcodec_dist_info,
-        os.path.basename(torchcodec_dist_info)
-    )
-)
-
-pyz_gui = PYZ(a_gui.pure, a_gui.zipped_data, cipher=block_cipher)
+# ============================================================
+# EXE GUI
+# ============================================================
 
 exe_gui = EXE(
     pyz_gui,
+
     a_gui.scripts,
+
     [],
+
     exclude_binaries=True,
+
     name='transcript_gui',
+
     debug=False,
+
     bootloader_ignore_signals=False,
+
     strip=False,
+
     upx=True,
+
     console=False,
+
     disable_windowed_traceback=False,
+
     argv_emulation=False,
+
     target_arch=None,
+
     codesign_identity=None,
+
     entitlements_file=None,
 )
 
-# ==========================================
-# 3. REGROUPEMENT FINAL ET NETTOYAGE
-# ==========================================
+
+# ============================================================
+# 3. DOSSIER FINAL UNIQUE
+# ============================================================
+#
+# dist/
+# └── transcript_app/
+#     ├── transcript_cli.exe
+#     ├── transcript_gui.exe
+#     ├── _internal/
+#     └── ...
+#
+# ============================================================
+
 coll = COLLECT(
     exe_cli,
-    clean_toc(a_cli.binaries),
-    clean_toc(a_cli.zipfiles),
-    clean_toc(a_cli.datas),
+
+    a_cli.binaries,
+    a_cli.zipfiles,
+    a_cli.datas,
+
     exe_gui,
-    clean_toc(a_gui.binaries),
-    clean_toc(a_gui.zipfiles),
-    clean_toc(a_gui.datas),
+
+    a_gui.binaries,
+    a_gui.zipfiles,
+    a_gui.datas,
+
     strip=False,
+
     upx=True,
+
     upx_exclude=[],
+
     name='transcript_app',
 )
