@@ -46,7 +46,7 @@ jobs:
     - name: Compiler avec PyInstaller via Spec
       shell: cmd
       run: |
-        pyinstaller .github/transcript.spec
+        pyinstaller .github/transcript.spec --clean
 
 
     - name: Move configuration files next to the Executables
