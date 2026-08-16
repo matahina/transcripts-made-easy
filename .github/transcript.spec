@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-import os
+import os, sys
 import whisper
 import faster_whisper
 from PyInstaller.utils.hooks import collect_all, copy_metadata, collect_data_files
@@ -73,7 +73,38 @@ for pkg in pkgs_to_collect:
     a_cli.binaries += b
     a_cli.hiddenimports += h
 
-a_cli.datas += copy_metadata('torchcodec')
+# ============================================================
+# torchcodec : ajouter manuellement ses metadata
+# ============================================================
+
+site_packages = os.path.join(
+    sys.prefix,
+    'Lib',
+    'site-packages'
+)
+
+torchcodec_dist_info = next(
+    (
+        os.path.join(site_packages, d)
+        for d in os.listdir(site_packages)
+        if d.lower().startswith('torchcodec-')
+        and d.lower().endswith('.dist-info')
+    ),
+    None
+)
+
+if torchcodec_dist_info is None:
+    raise RuntimeError(
+        f"Impossible de trouver torchcodec-*.dist-info dans : "
+        f"{site_packages}"
+    )
+
+a_cli.datas.append(
+    (
+        torchcodec_dist_info,
+        os.path.basename(torchcodec_dist_info)
+    )
+)
 
 pyz_cli = PYZ(a_cli.pure, a_cli.zipped_data, cipher=block_cipher)
 
@@ -147,7 +178,38 @@ for pkg in pkgs_to_collect:
     a_gui.binaries += b
     a_gui.hiddenimports += h
 
-a_gui.datas += copy_metadata('torchcodec')
+# ============================================================
+# torchcodec : ajouter manuellement ses metadata
+# ============================================================
+
+site_packages = os.path.join(
+    sys.prefix,
+    'Lib',
+    'site-packages'
+)
+
+torchcodec_dist_info = next(
+    (
+        os.path.join(site_packages, d)
+        for d in os.listdir(site_packages)
+        if d.lower().startswith('torchcodec-')
+        and d.lower().endswith('.dist-info')
+    ),
+    None
+)
+
+if torchcodec_dist_info is None:
+    raise RuntimeError(
+        f"Impossible de trouver torchcodec-*.dist-info dans : "
+        f"{site_packages}"
+    )
+
+a_gui.datas.append(
+    (
+        torchcodec_dist_info,
+        os.path.basename(torchcodec_dist_info)
+    )
+)
 
 pyz_gui = PYZ(a_gui.pure, a_gui.zipped_data, cipher=block_cipher)
 
