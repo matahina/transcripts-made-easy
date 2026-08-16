@@ -15,7 +15,9 @@ try:
     os.add_dll_directory(matching_paths[0])
 except:
     pass
-
+   
+# Lazy install but not lazy loading
+os.environ["TRANSFORMERS_NO_LAZY_LOADING"] = "1" 
 # Allow lazy install to get more libs
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0" 
