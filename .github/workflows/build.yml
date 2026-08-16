@@ -24,7 +24,7 @@ jobs:
     - name: Configurer Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12' # Modifiez selon vos besoins
+        python-version: '3.14' # Modifiez selon vos besoins
 
     # 3. Installer les dépendances
     - name: Installer les dépendances
