@@ -121,11 +121,11 @@ jobs:
 
     # 6. Publier TOUS les fichiers générés (y compris les archives découpées)
     - name: Publier sur la Release GitHub
-      tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'manual-build' }}
-      name: ${{ github.ref_type == 'tag' && github.ref_name || 'Manual Build' }}
-      prerelease: false
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'manual-build' }}
+        name: ${{ github.ref_type == 'tag' && github.ref_name || 'Manual Build' }}
+        prerelease: false
         files: |
           dist/transcript_app.zip*
           .github/magic_install.cmd
