@@ -1,7 +1,8 @@
 name: Publication des Releases PyInstaller
 
-# Le build se déclenche UNIQUEMENT lorsque vous poussez un tag qui commence par "v" (ex: v1.0, v2.1.4)
 on:
+  workflow_dispatch:
+
   push:
     tags:
       - 'v*'
