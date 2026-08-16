@@ -47,15 +47,36 @@ jobs:
       shell: cmd
       run: |
         pyinstaller .github/transcript.spec --clean
-
-
-    - name: Move configuration files next to the Executables
+        
+    - name: Inspect torchcodec in dist
       shell: pwsh
       run: |
-        # Un seul copier-coller suffit maintenant vers le dossier unique
-        Copy-Item -Path "vocabulary.txt" -Destination "dist\transcript_app\" -Force
-        Copy-Item -Path "token.txt" -Destination "dist\transcript_app\" -Force
+        Write-Host "=== TORCHCODEC FILES IN DIST ==="
+        Get-ChildItem -Path dist -Recurse -Force |
+          Where-Object { $_.FullName -match "torchcodec" } |
+          Select-Object FullName
+    
+        - name: Move configuration files next to the Executables
+          shell: pwsh
+          run: |
+            # Un seul copier-coller suffit maintenant vers le dossier unique
+            Copy-Item -Path "vocabulary.txt" -Destination "dist\transcript_app\" -Force
+            Copy-Item -Path "token.txt" -Destination "dist\transcript_app\" -Force
 
+        - name: Inspect torchcodec metadata
+          shell: pwsh
+          run: |
+            Write-Host "=== TORCHCODEC DIST-INFO ==="
+        
+            Get-ChildItem -Path dist -Recurse -Directory -Force |
+              Where-Object { $_.Name -like "torchcodec-*.dist-info" } |
+              ForEach-Object {
+                Write-Host "FOUND:"
+                Write-Host $_.FullName
+        
+                Write-Host "--- CONTENT ---"
+                Get-ChildItem $_.FullName | Select-Object Name
+              }
 
     - name: Créer les archives ZIP découpées
       shell: powershell
