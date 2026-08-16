@@ -238,6 +238,10 @@ def launch_transcript(the_model, input_files, the_language_whisper, the_language
         warnings.filterwarnings("ignore", module=r"torch.*")
         warnings.filterwarnings("ignore", module="librosa")
         warnings.filterwarnings("ignore", category=UserWarning)
+        warnings.filterwarnings(
+             "ignore",
+             message=r".*You are sending unauthenticated requests to the HF Hub.*"
+         )
         # warnings.filterwarnings("ignore", message="PySoundFile failed")
         # warnings.filterwarnings("ignore", message="expandable_segments not supported on this platform")
 
