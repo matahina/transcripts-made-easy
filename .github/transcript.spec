@@ -273,7 +273,7 @@ exe_cli = EXE(
 # ============================================================
 
 a_gui = Analysis(
-    ["../transcript_cli.py"],
+    ["../transcript_gui.py"],
 
     pathex=[],
 
