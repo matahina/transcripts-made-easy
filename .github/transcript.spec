@@ -36,10 +36,14 @@ a_cli = Analysis(
         'transformers.models.auto.processing_auto',
         'transformers.models.auto.tokenization_auto',
         'transformers.models.auto.configuration_auto',
-        # Ajoutez ces deux lignes si vous utilisez un modèle Nemotron-4 ou similaire basé sur Llama/Gemma
-        # 'transformers.models.llama',
-        # 'transformers.models.gemma',
-        'tokenizers'
+
+        'qwen_asr',
+        'qwen_asr.core',
+        'qwen_asr.core.transformers_backend',
+        'qwen_asr.inference',
+        'qwen_asr.inference.qwen3_asr',
+
+        'tokenizers',
     ],
     hookspath=[],
     hooksconfig={},
@@ -51,39 +55,26 @@ a_cli = Analysis(
     noarchive=False,
 )
 
-datas_trans, binaries_trans, hidden_trans = collect_all('transformers')
-a_cli.datas += datas_trans
-a_cli.binaries += binaries_trans
-a_cli.hiddenimports += hidden_trans
+pkgs_to_collect = [
+    'transformers',
+    'torch',
+    'openai-whisper',
+    'faster-whisper',
+    'hf_xet',
+    'huggingface_hub',
+    'tokenizers',
+    'safetensors',
+    'qwen_asr',
+]
 
-for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper', 'hf_xet']:
+for pkg in pkgs_to_collect:
     d, b, h = collect_all(pkg)
     a_cli.datas += d
     a_cli.binaries += b
     a_cli.hiddenimports += h
 
-a_cli.datas += collect_data_files('transformers', include_py_files=True)
-pkgs_to_collect = [
-    'transformers', 
-    'torchcodec', 
-    'torch', 
-    'openai-whisper', 
-    'faster-whisper', 
-    'hf_xet', 
-    'huggingface_hub', 
-    'tokenizers',
-    'safetensors' # Indispensable pour charger les poids .safetensors de Nemotron
-]
+a_cli.datas += copy_metadata('torchcodec')
 
-for pkg in pkgs_to_collect:
-    try:
-        d, b, h = collect_all(pkg)
-        a_cli.datas += d
-        a_cli.binaries += b
-        a_cli.hiddenimports += h
-        a_cli.datas += copy_metadata(pkg)
-    except Exception:
-        pass
 pyz_cli = PYZ(a_cli.pure, a_cli.zipped_data, cipher=block_cipher)
 
 exe_cli = EXE(
@@ -108,7 +99,7 @@ exe_cli = EXE(
 # 2. ANALYSE ET CONFIGURATION POUR GUI
 # ==========================================
 a_gui = Analysis(
-    ['../transcript_gui.py'],
+    ['../transcript_cli.py'],
     pathex=[],
     binaries=[],
     datas=[
@@ -119,10 +110,14 @@ a_gui = Analysis(
         'transformers.models.auto.processing_auto',
         'transformers.models.auto.tokenization_auto',
         'transformers.models.auto.configuration_auto',
-        # Ajoutez ces deux lignes si vous utilisez un modèle Nemotron-4 ou similaire basé sur Llama/Gemma
-        # 'transformers.models.llama',
-        # 'transformers.models.gemma',
-        'tokenizers'
+
+        'qwen_asr',
+        'qwen_asr.core',
+        'qwen_asr.core.transformers_backend',
+        'qwen_asr.inference',
+        'qwen_asr.inference.qwen3_asr',
+
+        'tokenizers',
     ],
     hookspath=[],
     hooksconfig={},
@@ -134,38 +129,25 @@ a_gui = Analysis(
     noarchive=False,
 )
 
-a_gui.datas += datas_trans
-a_gui.binaries += binaries_trans
-a_gui.hiddenimports += hidden_trans
+pkgs_to_collect = [
+    'transformers',
+    'torch',
+    'openai-whisper',
+    'faster-whisper',
+    'hf_xet',
+    'huggingface_hub',
+    'tokenizers',
+    'safetensors',
+    'qwen_asr',
+]
 
-for pkg in ['torchcodec', 'torch', 'openai-whisper', 'faster-whisper', 'hf_xet']:
+for pkg in pkgs_to_collect:
     d, b, h = collect_all(pkg)
     a_gui.datas += d
     a_gui.binaries += b
     a_gui.hiddenimports += h
 
-a_gui.datas += collect_data_files('transformers', include_py_files=True)
-pkgs_to_collect = [
-    'transformers', 
-    'torchcodec', 
-    'torch', 
-    'openai-whisper', 
-    'faster-whisper', 
-    'hf_xet', 
-    'huggingface_hub', 
-    'tokenizers',
-    'safetensors' # Indispensable pour charger les poids .safetensors de Nemotron
-]
-
-for pkg in pkgs_to_collect:
-    try:
-        d, b, h = collect_all(pkg)
-        a_gui.datas += d
-        a_gui.binaries += b
-        a_gui.hiddenimports += h
-        a_gui.datas += copy_metadata(pkg)
-    except Exception:
-        pass
+a_gui.datas += copy_metadata('torchcodec')
 
 pyz_gui = PYZ(a_gui.pure, a_gui.zipped_data, cipher=block_cipher)
 
