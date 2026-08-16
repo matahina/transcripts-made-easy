@@ -121,7 +121,9 @@ jobs:
 
     # 6. Publier TOUS les fichiers générés (y compris les archives découpées)
     - name: Publier sur la Release GitHub
-      if: startsWith(github.ref, 'refs/tags/v')
+      tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'manual-build' }}
+      name: ${{ github.ref_type == 'tag' && github.ref_name || 'Manual Build' }}
+      prerelease: false
       uses: softprops/action-gh-release@v2
       with:
         files: |
