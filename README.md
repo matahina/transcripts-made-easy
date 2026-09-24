@@ -1,19 +1,39 @@
-CLI and GUI interfaces for using several of the most recent Automatic Speech Recognition models (Whisper, Faster-Whisper, Nemotron, Parakeet, Qwen3) written in python (with some use of transformers library).
+# Transcripts Made Easy
 
-> [!NOTE]  
-> Parts of current python code had been AI-generated, then human-reviewed, tested, modified.
-> - A short function from `transcript_cli.py` (hugely human-cleaned).
-> - First draft of `transcript_gui.py` then highly human-modified and human-revamped.
-> - Github actions `build.yml` and `transcript.spec` files were "co-written" by both human and AI.
-> - `magic_install.cmd` is fully human-written.
+A Python CLI and desktop GUI for running multiple Automatic Speech
+Recognition (ASR) models locally through a common interface.
 
- # Windows lazy easy install
+Currently supported models include Whisper, Faster-Whisper, Nemotron,
+Parakeet and Qwen3.
+
+The project handles model selection, CPU/GPU execution, audio decoding,
+prompts and custom vocabulary, transcription to TXT/SRT, and optional
+translation.
+
+It runs on Linux and Windows.
+
+The project grew out of a practical need to compare and use different local ASR systems without maintaining separate workflows for each model.
+
+## Features
+
+- Multiple ASR backends through a common interface
+- CLI and Tkinter GUI
+- CPU and CUDA execution
+- INT8 quantization where supported
+- Batch input
+- TXT and SRT output
+- Prompt and custom vocabulary support
+- FFmpeg or librosa audio decoding
+- Windows packaging/install support
+
+## Install
+### Windows lazy easy install
  
  Go to the last release, download `magic_install.cmd`. Put this file in a specific directory and run it. The `.exe` files, `.txt` config files and `_internal` library directory will thus appear (and the cmd file will auto-delete itself).
  
  You won't have FFmpeg installed (unless you did install it earlier by some other ways). Remind it.
 
- # Windows easy not lazy install
+### Windows easy not lazy install
  
 Python 3.14 highly recommended for latest `transformers` library use.
 
@@ -31,7 +51,7 @@ pip install transformers accelerate librosa content-types nagisa soynlp openai-w
 
 Now you can clone/download this repo and execute python files.
 
-# Linux install
+### Linux install
 
 ```bash
 apt install python3-venv libpython3.13 # tested on Debian trixie
@@ -45,13 +65,13 @@ pip install transformers accelerate librosa content-types nagisa soynlp openai-w
 
 Don't forget to activate your python-venv before using scripts.
 
-# How-to use script or UI
+### How-to use script or UI
 
 
 > [!IMPORTANT]
 > As you will run ASR models locally on your computer, you'll have to download data from the required model.
 > 
-> If you never run that model before (by example 'faster-whisper medium' or 'qwen3 0.6'), you will need to check "online mode" or `--online` option to allow connecting to HuggingFace.
+> If you never run that model before (for example 'faster-whisper medium' or 'qwen3 0.6'), you will need to check "online mode" or `--online` option to allow connecting to HuggingFace.
 >
 > Whisper (not Faster-Whisper not Whisper-Afr derivatives) doesn't require this option, and will automatically downloads data from its own resources.
 
@@ -67,7 +87,7 @@ See `python3 transcript_cli.py -h` for more details about params and languages f
 
 If transcription works, it will output a txt file with the same name as input file, in the same directory.
 
-`--online` allows connections to HuggingFace for downloading model if you never used it before. Only Whisper directly downloads from its own sources (not Faster-Whipser nor Whisper-Afr as they are from HuggingFace).
+`--online` allows connections to HuggingFace for downloading model if you never used it before. Only Whisper directly downloads from its own sources (not Faster-Whisper nor Whisper-Afr as they are from HuggingFace).
 
 `--cpu` will let model run on CPU only.
 
@@ -85,7 +105,7 @@ If transcription works, it will output a txt file with the same name as input fi
 
 `--vocabulary` will add content of file `vocabulary.txt` (one line per word) to prompt as technical words or names specific to your transcription (Whisper, Faster-Whisper, Whisper-Afr and Qwen3 only).
 
-`--prompt` allows you to add a prompt to help model for transcripting (Whisper, Faster-Whisper, Whisper-Afr and Qwen3 only; only around 150 words for Whipser-like models, only the last ~150 words if too many given).
+`--prompt` allows you to add a prompt to help model for transcription (Whisper, Faster-Whisper, Whisper-Afr and Qwen3 only; only around 150 words for Whisper-like models, only the last ~150 words if too many given).
 
 `-i` before file to input (`all` and `*` allowed).
 
@@ -99,7 +119,7 @@ See cli options for explanations.
 
 This model requires connection to HuggingFace, being logged in, so you have to ask for access to this model (https://huggingface.co/Sunbird/faster-whisper-51-african-languages) then fill an access token in the file `token.txt` to be able to use it.
 
-# Disk space usage
+## Disk space usage
 
 ### Python packages
 
@@ -115,8 +135,18 @@ Models data are downloaded in `cache` directory, at the same level as the python
 
 You can remove it to save disk space. Remember model data will have to be downloaded again to be run (with 'online' option).
 
+## Development Notes
 
-# Sources, References and Resources
+Parts of this project were developed with the assistance of generative AI tools.
+AI-generated code was reviewed, tested and modified before integration.
+
+In particular:
+- A function in `transcript_cli.py` was initially AI-generated and subsequently rewritten.
+- The initial draft of `transcript_gui.py` was AI-generated and substantially modified.
+- `build.yml` and `transcript.spec` were developed with AI assistance.
+- `magic_install.cmd` was written manually.
+
+## Sources, References and Resources
 
 ### Whisper ASR and some useful use cases.
 - https://github.com/openai/whisper
